@@ -3,7 +3,7 @@
 [![React Native](https://img.shields.io/badge/React%20Native-0.79.5-blue.svg)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-54.0.0-000020.svg?logo=expo)](https://expo.dev/)
 [![Supabase](https://img.shields.io/badge/Supabase-2.89.0-3ECF8E.svg?logo=supabase)](https://supabase.com/)
-[![License](https://img.shields.io/badge/License-Educational-green.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/Enesaslan63/bitirmeProjesiTabu.svg)](https://github.com/Enesaslan63/bitirmeProjesiTabu/stargazers)
 
 Bitirme Projesi - Mobil Tabu Oyun Uygulaması
@@ -227,7 +227,9 @@ const translations = {
 
 ## 📄 Lisans
 
-Bu proje bitirme projesi kapsamında geliştirilmiştir.
+Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır. Detaylar için LICENSE dosyasına bakınız.
+
+**MIT Lisansı**, projeyi özgürce kullanmanıza, değiştirmenize, dağıtmanıza ve ticari amaçlarla kullanmanıza izin verir.
 
 ## 👨‍💻 Geliştirici
 
