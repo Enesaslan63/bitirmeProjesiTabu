@@ -1,59 +1,90 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
 import { Text, TextInput } from 'react-native';
-import * as Font from 'expo-font';
-import SoundManager from './utils/sounds';
 
-import TabuuMenu from './screens/tabuuMenu'; // TabuuMenu bileşenin dosya yoluna göre değiştir
-import Help from './screens/help';      // Help ekranının dosya yolu
-import NewGame from './screens/NewGame'; // Örnek diğer ekranlar
-import Settings from './screens/Settings';
-import Game from './screens/Game'; // Game ekranının dosya yolu
-import Scores from './screens/Scores';
+import TabuuMenu from './screens/tabuuMenu';
+import NewGame from './screens/NewGame';
+import Game from './screens/Game';
 import FinalResults from './screens/FinalResults';
+import Scores from './screens/Scores';
 import MyWords from './screens/MyWords';
+import Settings from './screens/Settings';
+import Help from './screens/help';
+import LoginScreen from './screens/LoginScreen';
+import RegisterScreen from './screens/RegisterScreen';
+import { supabase } from './utils/supabase';
 
 const Stack = createNativeStackNavigator();
 
+SplashScreen.preventAutoHideAsync();
+
 export default function App() {
-  const [fontReady, setFontReady] = useState(false);
+  const [appIsReady, setAppIsReady] = useState(false);
+  const [session, setSession] = useState(null);
+
+  const [fontsLoaded] = useFonts({});
 
   useEffect(() => {
-    (async () => {
+    async function prepare() {
       try {
-        await Font.loadAsync({
-          IndieFlower: require('./assets/IndieFlower-Regular.ttf'),
-        });
-        await SoundManager.init();
-        // düşük volümlü arka plan müziği başlat
-        SoundManager.startBGM(0.08);
-        // Set global default font
-        Text.defaultProps = Text.defaultProps || {};
-        Text.defaultProps.style = [{ fontFamily: 'IndieFlower' }, Text.defaultProps.style].filter(Boolean);
-        TextInput.defaultProps = TextInput.defaultProps || {};
-        TextInput.defaultProps.style = [{ fontFamily: 'IndieFlower' }, TextInput.defaultProps.style].filter(Boolean);
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+
+        const { data: authListener } = supabase.auth.onAuthStateChange(
+          (_event, currentSession) => {
+            setSession(currentSession);
+          }
+        );
+
+        return () => {
+          authListener.unsubscribe();
+        };
+      } catch (e) {
+        console.warn(e);
       } finally {
-        setFontReady(true);
+        setAppIsReady(true);
       }
-    })();
+    }
+
+    prepare();
   }, []);
 
-  if (!fontReady) return null;
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    return null;
+  }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="TabuuMenu" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="TabuuMenu" component={TabuuMenu} />
-        <Stack.Screen name="Help" component={Help} />
-        <Stack.Screen name="NewGame" component={NewGame} />
-        <Stack.Screen name="Settings" component={Settings} />
-        <Stack.Screen name="Game" component={Game} options={{ gestureEnabled: false }} />
-        <Stack.Screen name="Scores" component={Scores} />
-        <Stack.Screen name="MyWords" component={MyWords} />
-        <Stack.Screen name="FinalResults" component={FinalResults} options={{ gestureEnabled: false }} />
+    <NavigationContainer onReady={onLayoutRootView}>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {session ? (
+          // Kullanıcı oturum açmış
+          <Stack.Group>
+            <Stack.Screen name="TabuuMenu" component={TabuuMenu} />
+            <Stack.Screen name="NewGame" component={NewGame} />
+            <Stack.Screen name="Game" component={Game} />
+            <Stack.Screen name="FinalResults" component={FinalResults} />
+            <Stack.Screen name="Scores" component={Scores} />
+            <Stack.Screen name="MyWords" component={MyWords} />
+            <Stack.Screen name="Settings" component={Settings} />
+            <Stack.Screen name="Help" component={Help} />
+          </Stack.Group>
+        ) : (
+          // Kullanıcı oturum açmamış
+          <Stack.Group>
+            <Stack.Screen name="LoginScreen" component={LoginScreen} />
+            <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
+          </Stack.Group>
+        )}
       </Stack.Navigator>
-      
     </NavigationContainer>
   );
 }

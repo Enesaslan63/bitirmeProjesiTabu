@@ -1,12 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, StatusBar, ScrollView, Platform } from 'react-native';
-import heart from '../assets/heart.png';
-import exclamationMark from '../assets/exclamation-mark.png';
-import paperPlane from '../assets/paper-plane.png';
-import colosseum from '../assets/colosseum.png';
-import londonEye from '../assets/london-eye.png';
-import galataTower from '../assets/galata-tower.png';
-import pyramids from '../assets/pyramids.png';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, ScrollView, Platform } from 'react-native';
+
 
 const translations = {
   tr: {
@@ -42,6 +36,7 @@ export default function FinalResults({ route, navigation }) {
     allowContinue = true,
     teamAStats = { correct: 0, pass: 0, taboo: 0, correctWords: [], passWords: [], tabooWords: [] },
     teamBStats = { correct: 0, pass: 0, taboo: 0, correctWords: [], passWords: [], tabooWords: [] },
+    silentMode = false,
   } = route.params || {};
   const t = translations[language];
 
@@ -49,19 +44,8 @@ export default function FinalResults({ route, navigation }) {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <View style={styles.card}>
-        {/* Notebook background */}
-        <View style={styles.linedBackground}>
-          {[...Array(20)].map((_, i) => (
-            <View key={i} style={styles.line} />
-          ))}
-        </View>
-
-        {/* Doodles */}
-        <Image source={colosseum} style={styles.colosseumDoodle} pointerEvents="none" />
-        <Image source={londonEye} style={styles.londonEyeDoodle} pointerEvents="none" />
-        <Image source={galataTower} style={styles.galataTowerDoodle} pointerEvents="none" />
-        <Image source={pyramids} style={styles.pyramidsDoodle} pointerEvents="none" />
-
+        
+        
         <Text style={styles.title}>{t.gameOver}</Text>
 
         <ScrollView contentContainerStyle={{ paddingBottom: 10 }}>
@@ -71,15 +55,12 @@ export default function FinalResults({ route, navigation }) {
             <Text style={styles.scoreText}>{teamAScore}</Text>
             <View style={styles.badgesRow}>
               <View style={[styles.badge, { backgroundColor: '#66BB6A' }]}>
-                <Image source={heart} style={styles.badgeIcon} />
                 <Text style={styles.badgeCount}>{teamAStats.correct}</Text>
               </View>
               <View style={[styles.badge, { backgroundColor: '#FFB74D' }]}>
-                <Image source={paperPlane} style={styles.badgeIcon} />
                 <Text style={styles.badgeCount}>{teamAStats.pass}</Text>
               </View>
               <View style={[styles.badge, { backgroundColor: '#EF5350' }]}>
-                <Image source={exclamationMark} style={styles.badgeIcon} />
                 <Text style={styles.badgeCount}>{teamAStats.taboo}</Text>
               </View>
             </View>
@@ -104,15 +85,12 @@ export default function FinalResults({ route, navigation }) {
             <Text style={styles.scoreText}>{teamBScore}</Text>
             <View style={styles.badgesRow}>
               <View style={[styles.badge, { backgroundColor: '#66BB6A' }]}>
-                <Image source={heart} style={styles.badgeIcon} />
                 <Text style={styles.badgeCount}>{teamBStats.correct}</Text>
               </View>
               <View style={[styles.badge, { backgroundColor: '#FFB74D' }]}>
-                <Image source={paperPlane} style={styles.badgeIcon} />
                 <Text style={styles.badgeCount}>{teamBStats.pass}</Text>
               </View>
               <View style={[styles.badge, { backgroundColor: '#EF5350' }]}>
-                <Image source={exclamationMark} style={styles.badgeIcon} />
                 <Text style={styles.badgeCount}>{teamBStats.taboo}</Text>
               </View>
             </View>
@@ -145,6 +123,7 @@ export default function FinalResults({ route, navigation }) {
                   // winPoints kaldırıldı,
                   gameMode,
                   language,
+                  silentMode,
                   initialTeamAScore: 0,
                   initialTeamBScore: 0,
                 })
@@ -165,18 +144,10 @@ export default function FinalResults({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#4A90E2' },
   card: { width: '90%', maxWidth: 720, backgroundColor: '#fdf6e3', borderRadius: 16, borderWidth: 2, borderColor: '#8B4513', padding: 20, alignItems: 'center', overflow: 'hidden' },
   title: { fontFamily: 'IndieFlower', fontSize: Platform.OS === 'android' ? 24 : 26, color: '#8B4513', marginBottom: 12, marginTop: 8, fontWeight: 'normal', textAlign: 'center' },
-  // notebook background
-  linedBackground: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, paddingTop: 60 },
-  line: { height: 1, backgroundColor: '#e0e0e0', marginVertical: 18, width: '100%' },
-  // doodles
-  colosseumDoodle: { position: 'absolute', top: 20, left: 20, width: 28, height: 28, opacity: 0.1 },
-  londonEyeDoodle: { position: 'absolute', top: 20, right: 20, width: 28, height: 28, opacity: 0.1 },
-  galataTowerDoodle: { position: 'absolute', bottom: 20, left: 20, width: 24, height: 24, opacity: 0.1 },
-  pyramidsDoodle: { position: 'absolute', bottom: 20, right: 20, width: 28, height: 28, opacity: 0.1 },
-  // team blocks
+  
   teamBlock: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#8B4513', borderRadius: 12, padding: Platform.OS === 'android' ? 12 : 15, marginVertical: 8, alignSelf: 'stretch', width: '100%' },
   teamTitle: { fontFamily: 'IndieFlower', fontSize: Platform.OS === 'android' ? 15 : 16, color: '#8B4513', textAlign: 'center', fontWeight: 'normal' },
   scoreText: { fontFamily: 'IndieFlower', fontSize: Platform.OS === 'android' ? 24 : 26, color: '#4A6FA5', textAlign: 'center', marginVertical: 6, fontWeight: 'normal' },

@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, StatusBar, ScrollView, Image, SafeAreaView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, StatusBar, ScrollView, SafeAreaView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import SoundManager from '../utils/sounds';
-import * as Font from 'expo-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import book from '../assets/book.png';
-import colosseum from '../assets/colosseum.png';
-import londonEye from '../assets/london-eye.png';
-import galataTower from '../assets/galata-tower.png';
-import pyramids from '../assets/pyramids.png';
+
 
 const Help = () => {
   const navigation = useNavigation();
@@ -22,9 +16,6 @@ const Help = () => {
 
   useEffect(() => {
     const loadAssetsAndSettings = async () => {
-      await Font.loadAsync({
-        'IndieFlower': require('../assets/IndieFlower-Regular.ttf'),
-      });
       setFontLoaded(true);
       
       try {
@@ -129,23 +120,14 @@ const Help = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.linedBackground}>
-        {[...Array(20)].map((_, i) => (
-          <View key={i} style={styles.line} />
-        ))}
-      </View>
       
       <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        <Image source={colosseum} style={styles.colosseumDoodle} />
-        <Image source={londonEye} style={styles.londonEyeDoodle} />
-        <Image source={galataTower} style={styles.galataTowerDoodle} />
-        <Image source={pyramids} style={styles.pyramidsDoodle} />
+        
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => { SoundManager.playPage(); navigation.goBack(); }} style={styles.backButton}>
+          <TouchableOpacity onPress={() => { navigation.goBack(); }} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#8B4513" />
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Image source={book} style={styles.headerBookIcon} />
             <Ionicons name="help-circle" size={32} color="#8B4513" />
             <Text style={styles.title}>{t.helpTitle}</Text>
           </View>
@@ -207,21 +189,13 @@ const Help = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fdf6e3', // iOS ile aynı ton
+    backgroundColor: '#4A90E2', // Mavi tonu
   },
   linedBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingTop: 80,
+    height: 0,
   },
   line: {
-    height: 1,
-    backgroundColor: '#e0e0e0', // Çizgi rengi
-    marginVertical: 18, // Çizgiler arası boşluk
-    width: '100%',
+    height: 0,
   },
   content: {
     flex: 1,
@@ -331,38 +305,6 @@ const styles = StyleSheet.create({
     color: '#FFF', 
     fontSize: Platform.OS === 'android' ? 21 : 22, 
     fontFamily: 'IndieFlower',
-  },
-  colosseumDoodle: {
-    position: 'absolute',
-    top: 50,
-    left: 20,
-    width: 38,
-    height: 38,
-    opacity: 0.15,
-  },
-  londonEyeDoodle: {
-    position: 'absolute',
-    bottom: 80,
-    right: 30,
-    width: 42,
-    height: 42,
-    opacity: 0.15,
-  },
-  galataTowerDoodle: {
-    position: 'absolute',
-    top: 250,
-    right: 10,
-    width: 36,
-    height: 36,
-    opacity: 0.15,
-  },
-  pyramidsDoodle: {
-    position: 'absolute',
-    bottom: 150,
-    left: 40,
-    width: 40,
-    height: 40,
-    opacity: 0.15,
   },
   section: {
     marginBottom: 20,

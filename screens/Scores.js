@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, StatusBar, Image, SafeAreaView, Modal, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated, StatusBar, SafeAreaView, Modal, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import * as Font from 'expo-font';
-import notebook from '../assets/notebook.png';
-import pinwheel from '../assets/pinwheel.png';
-import colosseum from '../assets/colosseum.png';
-import londonEye from '../assets/london-eye.png';
-import galataTower from '../assets/galata-tower.png';
-import pyramids from '../assets/pyramids.png';
+
 
 
 const translations = {
@@ -36,8 +30,12 @@ const translations = {
     won: 'kazandı!',
     score: 'Skor:',
     mode: 'Mod:',
-    adult: 'Yetişkin',
-    child: 'Çocuk',
+    easy: 'Kolay',
+    medium: 'Orta',
+    hard: 'Zor',
+    custom: 'Kendi Kartların',
+    charades: 'Sessiz Sinema',
+    ok: 'Tamam',
     failedToLoadScores: 'Skorlar yüklenemedi:',
   },
   en: {
@@ -63,8 +61,12 @@ const translations = {
     won: 'won!',
     score: 'Score:',
     mode: 'Mode:',
-    adult: 'Adult',
-    child: 'Child',
+    easy: 'Easy',
+    medium: 'Medium',
+    hard: 'Hard',
+    custom: 'My Cards',
+    charades: 'Charades',
+    ok: 'OK',
     failedToLoadScores: 'Failed to load scores:',
   },
 };
@@ -83,9 +85,6 @@ export default function Scores() {
 
   useEffect(() => {
     const loadAssetsAndSettings = async () => {
-      await Font.loadAsync({
-        'IndieFlower': require('../assets/IndieFlower-Regular.ttf'),
-      });
       setFontLoaded(true);
 
       try {
@@ -115,6 +114,16 @@ export default function Scores() {
   }, []);
 
   const t = translations[currentLanguage];
+  const modeLabel = (gm, isSilent) => {
+    if (isSilent) return t.charades;
+    switch (gm) {
+      case 'easy': return t.easy;
+      case 'medium': return t.medium;
+      case 'hard': return t.hard;
+      case 'custom': return t.custom;
+      default: return gm ? String(gm) : '-';
+    }
+  };
 
   const loadScores = async () => {
     try {
@@ -162,31 +171,17 @@ export default function Scores() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.linedBackground}>
-        {[...Array(20)].map((_, i) => (
-          <View key={i} style={styles.line} />
-        ))}
-      </View>
       
       <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        {/* Doodle'lar */}
-        <Image source={notebook} style={styles.notebookDoodle} />
-        <Image source={pinwheel} style={styles.pinwheelDoodle} />
-        <Image source={colosseum} style={styles.colosseumDoodle} />
-        <Image source={londonEye} style={styles.londonEyeDoodle} />
-        <Image source={galataTower} style={styles.galataTowerDoodle} />
-        <Image source={pyramids} style={styles.pyramidsDoodle} />
-
+        
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#8B4513" />
           </TouchableOpacity>
           <View style={styles.titleContainer}>
-            <Image source={notebook} style={styles.headerIconLeft} />
             <Ionicons name="trophy" size={32} color="#8B4513" />
             <Text style={styles.title}>{t.scoresTitle}</Text>
-            <Image source={pinwheel} style={styles.headerIconRight} />
           </View>
         </View>
 
@@ -241,7 +236,7 @@ export default function Scores() {
                   <Text style={styles.gameItemDetails}>{game.winner} {t.won} ({game.teamAScore} - {game.teamBScore})</Text>
                   <Text style={styles.gameItemScore}>{t.score} {game.score}</Text>
                   {game.gameMode && (
-                    <Text style={styles.gameItemMode}>{t.mode}: {game.gameMode === 'adult' ? t.adult : t.child}</Text>
+                    <Text style={styles.gameItemMode}>{t.mode}: {modeLabel(game.gameMode, game.silentMode)}</Text>
                   )}
                 </View>
               ))
@@ -300,8 +295,13 @@ export default function Scores() {
             <Ionicons name="information-circle" size={36} color="#8B4513" />
             <Text style={styles.modalTitle}>{infoModal.title}</Text>
             <Text style={styles.modalMessage}>{infoModal.message}</Text>
-            <TouchableOpacity style={[styles.modalBtn, { backgroundColor: '#a9d5ee', alignSelf: 'center' }]} onPress={() => setInfoModal({ visible: false, title: '', message: '' })}>
-              <Text style={styles.modalBtnText}>OK</Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={t.ok || 'Tamam'}
+              style={[styles.modalBtn, { backgroundColor: '#a9d5ee', alignSelf: 'center', minWidth: 140, justifyContent: 'center', flex: 0, height: 42 }]}
+              onPress={() => setInfoModal({ visible: false, title: '', message: '' })}
+            >
+              <Text style={styles.modalBtnText}>{t.ok || 'Tamam'}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -313,21 +313,7 @@ export default function Scores() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fdf6e3', // iOS ile aynı ton
-  },
-  linedBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingTop: 80,
-  },
-  line: {
-    height: 1,
-    backgroundColor: '#e0e0e0', // Çizgi rengi
-    marginVertical: 18, // Çizgiler arası boşluk
-    width: '100%',
+    backgroundColor: '#4A90E2', // Mavi tonu
   },
   content: {
     flex: 1,
@@ -364,16 +350,6 @@ const styles = StyleSheet.create({
     color: '#8B4513',
     marginLeft: 10,
     fontFamily: 'IndieFlower',
-  },
-  headerIconLeft: {
-    width: 30,
-    height: 30,
-    marginRight: 10,
-  },
-  headerIconRight: {
-    width: 30,
-    height: 30,
-    marginLeft: 10,
   },
   scrollContent: {
     flexGrow: 1,
@@ -507,60 +483,6 @@ const styles = StyleSheet.create({
   clearButtonColor: {
     backgroundColor: '#EF5350', // Matching softer red
   },
-  notebookDoodle: {
-    position: 'absolute',
-    top: 100,
-    left: -50,
-    width: 100,
-    height: 100,
-    opacity: 0.1,
-    transform: [{ rotate: '-10deg' }],
-  },
-  pinwheelDoodle: {
-    position: 'absolute',
-    top: 200,
-    right: -30,
-    width: 80,
-    height: 80,
-    opacity: 0.1,
-    transform: [{ rotate: '15deg' }],
-  },
-  colosseumDoodle: {
-    position: 'absolute',
-    bottom: 100,
-    left: 100,
-    width: 120,
-    height: 120,
-    opacity: 0.1,
-    transform: [{ rotate: '-5deg' }],
-  },
-  londonEyeDoodle: {
-    position: 'absolute',
-    top: 300,
-    left: 200,
-    width: 150,
-    height: 150,
-    opacity: 0.1,
-    transform: [{ rotate: '5deg' }],
-  },
-  galataTowerDoodle: {
-    position: 'absolute',
-    bottom: 200,
-    right: 200,
-    width: 100,
-    height: 100,
-    opacity: 0.1,
-    transform: [{ rotate: '10deg' }],
-  },
-  pyramidsDoodle: {
-    position: 'absolute',
-    top: 400,
-    left: 300,
-    width: 180,
-    height: 180,
-    opacity: 0.1,
-    transform: [{ rotate: '-15deg' }],
-  },
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.25)',
@@ -601,15 +523,26 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 6,
     borderRadius: 14,
-    paddingVertical: Platform.OS === 'android' ? 8 : 10,
-    paddingHorizontal: Platform.OS === 'android' ? 15 : 18,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
     borderWidth: 2,
     borderColor: '#8B4513',
     alignItems: 'center',
   },
   modalBtnText: {
     color: '#8B4513',
+    fontSize: 18,
+    fontFamily: Platform.OS === 'android' ? undefined : 'IndieFlower',
+    fontWeight: Platform.OS === 'android' ? 'bold' : 'normal',
+    textAlign: 'center'
+  },
+  modalBtnTextPrimary: {
+    color: '#8B4513',
     fontSize: Platform.OS === 'android' ? 16 : 16,
     fontFamily: 'IndieFlower',
+    fontWeight: Platform.OS === 'ios' ? 'bold' : 'normal',
+    textAlign: 'center',
+    includeFontPadding: false,
+    textAlignVertical: 'center'
   },
 });

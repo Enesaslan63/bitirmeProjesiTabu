@@ -167,7 +167,7 @@ export default function MyWords({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Platform.OS === 'android' ? '#fff9ef' : '#fdf6e3', paddingTop: Platform.OS === 'android' ? 16 : 28 },
+  container: { flex: 1, backgroundColor: '#4A90E2', paddingTop: Platform.OS === 'android' ? 16 : 28 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 },
   backButton: { width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: '#8B4513', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
   title: { fontFamily: 'IndieFlower', fontSize: Platform.OS === 'android' ? 21 : 23, color: '#8B4513', fontWeight: 'normal', marginTop: 2 },

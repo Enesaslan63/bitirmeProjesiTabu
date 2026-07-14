@@ -1,14 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Animated, StatusBar, Modal, ScrollView, Image, SafeAreaView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, Animated, StatusBar, Modal, ScrollView, SafeAreaView, Platform } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Font from 'expo-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import colosseum from '../assets/colosseum.png';
-import londonEye from '../assets/london-eye.png';
-import galataTower from '../assets/galata-tower.png';
-import pyramids from '../assets/pyramids.png';
-import SoundManager from '../utils/sounds';
 
 const { width, height } = Dimensions.get('window');
 
@@ -23,7 +17,6 @@ const translations = {
     adultMode: 'Kolay',
     childMode: 'Orta',
     hardMode: 'Zor',
-    ultraMode: 'Ultra Zor',
     customMode: 'Kendi Kartların',
     silentMode: 'Sessiz Sinema',
     timeLimit: 'Süre Limiti (saniye):',
@@ -45,7 +38,6 @@ const translations = {
     adultMode: 'Easy',
     childMode: 'Medium',
     hardMode: 'Hard',
-    ultraMode: 'Ultra Hard',
     customMode: 'My Cards',
     silentMode: 'Charades Mode',
     timeLimit: 'Time Limit (seconds):',
@@ -66,11 +58,10 @@ export default function NewGame() {
   const [timeLimit, setTimeLimit] = useState(60);
   const [passCount, setPassCount] = useState(3);
   const [tabooCount, setTabooCount] = useState(3);
-  const [gameMode, setGameMode] = useState('easy'); // 'easy' | 'medium' | 'hard' | 'ultra'
+  const [gameMode, setGameMode] = useState('easy'); // 'easy' | 'medium' | 'hard' | 'custom'
   const [silentMode, setSilentMode] = useState(false);
   const [fontLoaded, setFontLoaded] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState('tr');
-  // winPoints kaldırıldı – sadece tur sayısı ile kazanma
   const [maxSets, setMaxSets] = useState(1);
   const [errorModal, setErrorModal] = useState({ visible: false, title: '', message: '' });
 
@@ -81,11 +72,8 @@ export default function NewGame() {
 
   useEffect(() => {
     const loadAssetsAndSettings = async () => {
-      await Font.loadAsync({
-        'IndieFlower': require('../assets/IndieFlower-Regular.ttf'),
-      });
+      // NOT: Burada normalde font yükleme işlemi yapılmalı veya App.js'den yönetilmeli.
       setFontLoaded(true);
-      await SoundManager.init();
 
       try {
         const savedSettings = await AsyncStorage.getItem('tabuuSettings');
@@ -95,7 +83,6 @@ export default function NewGame() {
           if (parsed.timeLimit) setTimeLimit(parsed.timeLimit);
           if (parsed.passCount !== undefined) setPassCount(parsed.passCount);
           if (parsed.tabuCount !== undefined) setTabooCount(parsed.tabuCount);
-          // winPoints artık kullanılmıyor
           if (parsed.maxSets !== undefined) setMaxSets(parsed.maxSets);
         }
       } catch (error) {
@@ -123,7 +110,7 @@ export default function NewGame() {
     ]).start();
   }, []);
 
-  // Dil değişince varsayılan takım adlarını yerelleştir (kullanıcı değiştirmediyse)
+  // Dil değişince varsayılan takım adlarını güncelle
   useEffect(() => {
     const trA = 'A Takımı';
     const trB = 'B Takımı';
@@ -131,6 +118,7 @@ export default function NewGame() {
     const enB = 'Team B';
     const isDefaultA = [trA, enA, ''].includes((teamA || '').trim());
     const isDefaultB = [trB, enB, ''].includes((teamB || '').trim());
+
     if (currentLanguage === 'en') {
       if (isDefaultA && teamA !== enA) setTeamA(enA);
       if (isDefaultB && teamB !== enB) setTeamB(enB);
@@ -140,7 +128,7 @@ export default function NewGame() {
     }
   }, [currentLanguage]);
 
-  // Settings'ten dönünce dili tekrar yükle
+  // Settings'ten dönünce dili tekrar kontrol et
   useFocusEffect(
     React.useCallback(() => {
       (async () => {
@@ -174,26 +162,15 @@ export default function NewGame() {
   };
 
   if (!fontLoaded) {
-    return null; // Font yüklenene kadar hiçbir şey gösterme
+    return null;
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.linedBackground}>
-        {[...Array(20)].map((_, i) => (
-          <View key={i} style={styles.line} />
-        ))}
-      </View>
       
       <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-        {/* Doodles behind content */}
-        <View style={styles.doodlesContainer} pointerEvents="none">
-          <Image source={colosseum} style={styles.colosseumDoodle} />
-          <Image source={londonEye} style={styles.londonEyeDoodle} />
-          <Image source={galataTower} style={styles.galataTowerDoodle} />
-          <Image source={pyramids} style={styles.pyramidsDoodle} />
-        </View>
+        
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -237,26 +214,22 @@ export default function NewGame() {
             <Text style={styles.settingsTitle}>{t.gameMode}</Text>
             <View style={styles.modeButtonsContainer}>
               <TouchableOpacity
-                style={[styles.modeButton, { width: '24%', marginHorizontal: '0.5%' }, gameMode === 'easy' && styles.activeModeButton]}
+                style={[styles.modeButton, { width: '31.3%', marginHorizontal: '1%' }, gameMode === 'easy' && styles.activeModeButton]}
                 onPress={() => setGameMode('easy')}
               >
                 <Ionicons name="leaf" size={24} color={gameMode === 'easy' ? '#fff' : '#8B4513'} style={{ marginBottom: 6 }} />
                 <Text style={[styles.modeButtonText, gameMode === 'easy' && styles.activeModeButtonText]}>{t.adultMode}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modeButton, { width: '24%', marginHorizontal: '0.5%' }, gameMode === 'medium' && styles.activeModeButton]}
+                style={[styles.modeButton, { width: '31.3%', marginHorizontal: '1%' }, gameMode === 'medium' && styles.activeModeButton]}
                 onPress={() => setGameMode('medium')}
               >
                 <Ionicons name="book" size={24} color={gameMode === 'medium' ? '#fff' : '#8B4513'} style={{ marginBottom: 6 }} />
                 <Text style={[styles.modeButtonText, gameMode === 'medium' && styles.activeModeButtonText]}>{t.childMode}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modeButton, { width: '24%', marginHorizontal: '0.5%' }, gameMode === 'hard' && styles.activeModeButton]} onPress={() => setGameMode('hard')}>
+              <TouchableOpacity style={[styles.modeButton, { width: '31.3%', marginHorizontal: '1%' }, gameMode === 'hard' && styles.activeModeButton]} onPress={() => setGameMode('hard')}>
                 <Ionicons name="flame" size={24} color={gameMode === 'hard' ? '#fff' : '#8B4513'} style={{ marginBottom: 6 }} />
                 <Text style={[styles.modeButtonText, gameMode === 'hard' && styles.activeModeButtonText]}>{t.hardMode}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.modeButton, { width: '24%', marginHorizontal: '0.5%' }, gameMode === 'ultra' && styles.activeModeButton]} onPress={() => setGameMode('ultra')}>
-                <Ionicons name="skull" size={22} color={gameMode === 'ultra' ? '#fff' : '#8B4513'} style={{ marginBottom: 8 }} />
-                <Text style={[styles.modeButtonText, gameMode === 'ultra' && styles.activeModeButtonText]}>{t.ultraMode}</Text>
               </TouchableOpacity>
             </View>
             <View style={[styles.modeButtonsContainer, { marginTop: 0 }]}>
@@ -287,14 +260,14 @@ export default function NewGame() {
 
           {/* Başlat Butonları */}
           <View style={styles.buttonsContainer}>
-            <TouchableOpacity style={styles.quickStartButton} onPress={() => { SoundManager.playPage(); handleQuickStart(); }} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.quickStartButton} onPress={() => { handleQuickStart(); }} activeOpacity={0.8}>
               <View style={styles.buttonContent}>
                 <Ionicons name="flash" size={24} color="#8B4513" />
                 <Text style={styles.quickStartText}>{t.quickStart}</Text>
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.startButton} onPress={() => { SoundManager.playPage(); handleStartGame(); }} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.startButton} onPress={() => { handleStartGame(); }} activeOpacity={0.8}>
               <View style={[styles.buttonContent, styles.startButtonColor]}>
                 <Ionicons name="play" size={24} color="#fff" />
                 <Text style={styles.startButtonText}>{t.startGame}</Text>
@@ -303,7 +276,8 @@ export default function NewGame() {
           </View>
         </ScrollView>
       </Animated.View>
-      {/* Güzel Hata Modali */}
+
+      {/* Hata Modali */}
       <Modal visible={errorModal.visible} transparent animationType="fade">
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
@@ -322,26 +296,12 @@ export default function NewGame() {
       </Modal>
     </SafeAreaView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fdf6e3', // iOS ile aynı ton
-  },
-  linedBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingTop: 80,
-  },
-  line: {
-    height: 1,
-    backgroundColor: '#e0e0e0', // Çizgi rengi
-    marginVertical: 18, // Çizgiler arası boşluk
-    width: '100%',
+    backgroundColor: '#4A90E2',
   },
   content: {
     flex: 1,
@@ -349,10 +309,6 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     paddingBottom: 10,
     justifyContent: 'flex-start',
-  },
-  doodlesContainer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 0,
   },
   header: {
     flexDirection: 'row',
@@ -362,7 +318,7 @@ const styles = StyleSheet.create({
   backButton: {
     marginRight: 12,
     backgroundColor: '#fff',
-    borderRadius: 25, // More rounded
+    borderRadius: 25,
     padding: 8,
     borderWidth: 2,
     borderColor: '#8B4513',
@@ -455,11 +411,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   modeButton: {
-    width: '23%',
+    width: '31.3%',
     paddingVertical: Platform.OS === 'android' ? 6 : 8,
     borderRadius: 12,
     alignItems: 'center',
-    marginHorizontal: 2,
+    marginHorizontal: '1%',
   },
   modeButtonText: {
     fontSize: Platform.OS === 'android' ? 13 : 14,
@@ -468,61 +424,10 @@ const styles = StyleSheet.create({
     color: '#8B4513',
   },
   activeModeButton: {
-    backgroundColor: '#f4a460', // Soft orange for active
+    backgroundColor: '#f4a460',
   },
   activeModeButtonText: {
     color: '#fff',
-  },
-  settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 18, // Increased padding
-    borderRadius: 18, // More rounded
-    marginBottom: 18, // Increased margin bottom
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-    elevation: 4,
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#8B4513',
-  },
-  settingLabel: {
-    fontSize: 18, // Slightly larger
-    color: '#333',
-    fontWeight: 'normal',
-    fontFamily: 'IndieFlower',
-  },
-  settingButtons: {
-    flexDirection: 'row',
-  },
-  settingButton: {
-    backgroundColor: '#a9d5ee', // Soft blue for buttons
-    borderRadius: 12, // More rounded
-    paddingVertical: 10, // Increased padding
-    paddingHorizontal: 15, // Increased padding
-    marginLeft: 12, // Increased margin
-    borderWidth: 1,
-    borderColor: '#8B4513',
-  },
-  settingButtonText: {
-    color: '#8B4513',
-    fontWeight: 'normal',
-    fontFamily: 'IndieFlower',
-    fontSize: 16,
-  },
-  activeSettingButton: {
-    backgroundColor: '#8B4513',
-  },
-  activeSettingButtonText: {
-    color: '#fff',
-  },
-  passIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
   },
   buttonsContainer: {
     flexDirection: 'row',
@@ -553,10 +458,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12,
     alignItems: 'center',
-    backgroundColor: '#f4a460', // Soft orange
+    backgroundColor: '#f4a460',
   },
   startButtonColor: {
-    backgroundColor: '#5b9bd5', // Soft blue
+    backgroundColor: '#5b9bd5',
   },
   settingsShortcutColor: {
     backgroundColor: '#a9d5ee',
@@ -610,7 +515,7 @@ const styles = StyleSheet.create({
     fontFamily: 'IndieFlower',
   },
   quickStartText: {
-    color: '#8B4513', // Brown text
+    color: '#8B4513',
     fontWeight: 'normal',
     fontSize: Platform.OS === 'android' ? 13 : 14,
     marginTop: 6,
@@ -640,36 +545,4 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontFamily: 'IndieFlower',
   },
-  colosseumDoodle: {
-    position: 'absolute',
-    top: 20,
-    left: 10,
-    width: 36,
-    height: 36,
-    opacity: 0.15,
-  },
-  londonEyeDoodle: {
-    position: 'absolute',
-    top: 120,
-    right: 20,
-    width: 40,
-    height: 40,
-    opacity: 0.15,
-  },
-  galataTowerDoodle: {
-    position: 'absolute',
-    bottom: 120,
-    left: 30,
-    width: 34,
-    height: 34,
-    opacity: 0.15,
-  },
-  pyramidsDoodle: {
-    position: 'absolute',
-    bottom: 40,
-    right: 40,
-    width: 42,
-    height: 42,
-    opacity: 0.15,
-  },
-});
+}); 

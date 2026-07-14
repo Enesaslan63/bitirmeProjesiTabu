@@ -3,12 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SoundManager from '../utils/sounds';
-import { Image } from 'react-native';
-import colosseum from '../assets/colosseum.png';
-import londonEye from '../assets/london-eye.png';
-import galataTower from '../assets/galata-tower.png';
-import pyramids from '../assets/pyramids.png';
+
 
 const Settings = ({ navigation }) => {
   const [timeLimit, setTimeLimit] = useState(180);
@@ -16,7 +11,6 @@ const Settings = ({ navigation }) => {
   const [passCount, setPassCount] = useState(3);
   const [language, setLanguage] = useState('tr');
   const [maxSets, setMaxSets] = useState(1);
-  const [soundEnabled, setSoundEnabled] = useState(true);
   // advanced settings
   const [penaltyEnabled, setPenaltyEnabled] = useState(true);
   const [penaltyPoints, setPenaltyPoints] = useState(20);
@@ -42,7 +36,6 @@ const Settings = ({ navigation }) => {
           setPassCount(parsed.passCount ?? 3);
           setLanguage(parsed.language ?? 'tr');
           setMaxSets(parsed.maxSets ?? 1);
-          setSoundEnabled(parsed.soundEnabled ?? true);
           setPenaltyEnabled(parsed.penaltyEnabled ?? true);
           setPenaltyPoints(parsed.penaltyPoints ?? 20);
           setComboEnabled(parsed.comboEnabled ?? true);
@@ -66,17 +59,11 @@ const Settings = ({ navigation }) => {
 
   const handleSave = async () => {
     try {
-      const settingsData = { timeLimit, tabuCount, passCount, language, maxSets, soundEnabled, penaltyEnabled, penaltyPoints, comboEnabled, combo3, combo5, randomTimeEnabled, randomTimeMin, randomTimeMax, themes, surpriseEnabled, surpriseChance, autoRounds };
+      const settingsData = { timeLimit, tabuCount, passCount, language, maxSets, penaltyEnabled, penaltyPoints, comboEnabled, combo3, combo5, randomTimeEnabled, randomTimeMin, randomTimeMax, themes, surpriseEnabled, surpriseChance, autoRounds };
       await AsyncStorage.setItem('tabuuSettings', JSON.stringify(settingsData));
       console.log('Ayarlar kaydedildi:', settingsData);
     } catch (error) {
       console.log('Ayarlar kaydedilemedi:', error);
-    }
-    SoundManager.setEnabled(soundEnabled);
-    if (soundEnabled) {
-      SoundManager.startBGM(0.08);
-    } else {
-      SoundManager.stopBGM();
     }
     navigation.goBack();
   };
@@ -88,9 +75,6 @@ const Settings = ({ navigation }) => {
       passRights: "Pas Hakkı:",
       tabooCount: "Tabu:",
       maxSets: "Tur Sayısı:",
-      sound: "Ses:",
-      on: "Açık",
-      off: "Kapalı",
       language: "Dil:",
       turkish: "Türkçe",
       english: "English",
@@ -110,9 +94,6 @@ const Settings = ({ navigation }) => {
       english: "English",
       saveSettings: "Save Settings",
       maxSets: "Rounds:",
-      sound: "Sound:",
-      on: "On",
-      off: "Off",
       penalty: "Penalty",
       penaltyPoints: "Penalty Points",
       comboBonus: "Combo Bonus",
@@ -123,18 +104,9 @@ const Settings = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.linedBackground}>
-        {[...Array(20)].map((_, i) => (
-          <View key={i} style={styles.line} />  
-        ))}
-      </View>
+      
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Arka plan doodle'lar */}
-        <Image source={colosseum} style={styles.colosseumDoodle} />
-        <Image source={londonEye} style={styles.londonEyeDoodle} />
-        <Image source={galataTower} style={styles.galataTowerDoodle} />
-        <Image source={pyramids} style={styles.pyramidsDoodle} />
-
+        
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -230,18 +202,6 @@ const Settings = ({ navigation }) => {
 
         {/* Auto rounds removed */}
 
-        <View style={styles.settingRow}>
-          <Text style={styles.settingLabel}>{t.sound}</Text>
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => setSoundEnabled(!soundEnabled)}
-            style={[styles.toggle, soundEnabled ? styles.toggleOn : styles.toggleOff]}
-          >
-            <Text style={[styles.toggleText, soundEnabled ? styles.toggleTextOn : styles.toggleTextOff]}>{soundEnabled ? t.on : t.off}</Text>
-            <View style={[styles.toggleKnob, soundEnabled ? styles.toggleKnobOn : styles.toggleKnobOff]} />
-          </TouchableOpacity>
-        </View>
-
         {/* Dil seçimi */}
         <View style={styles.languageSection}>
           <Text style={styles.languageLabel}>{t.language}</Text>
@@ -294,9 +254,7 @@ const SettingRow = ({ label, value, decrease, increase, disableDecrease, disable
 );
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fdf6e3' },
-  linedBackground: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, paddingTop: 80 },
-  line: { height: 1, backgroundColor: '#e0e0e0', marginVertical: 18, width: '100%' },
+  container: { flex: 1, backgroundColor: '#4A90E2' },
   content: { flexGrow: 1, paddingHorizontal: 10, paddingTop: Platform.OS === 'android' ? 36 : 18, paddingBottom: 32 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, marginTop: Platform.OS === 'ios' ? 8 : 20, width: '100%' },
   backButton: { 
@@ -344,10 +302,6 @@ const styles = StyleSheet.create({
   toggleKnob: { position: 'absolute', width: 26, height: 26, borderRadius: 13, backgroundColor: '#fff', borderWidth: 2, borderColor: '#8B4513', top: 2 },
   toggleKnobOn: { right: 2 },
   toggleKnobOff: { left: 2 },
-  colosseumDoodle: { position: 'absolute', top: 50, left: 20, width: 38, height: 38, opacity: 0.15 },
-  londonEyeDoodle: { position: 'absolute', bottom: 80, right: 30, width: 42, height: 42, opacity: 0.15 },
-  galataTowerDoodle: { position: 'absolute', top: 250, right: 10, width: 36, height: 36, opacity: 0.15 },
-  pyramidsDoodle: { position: 'absolute', bottom: 150, left: 40, width: 40, height: 40, opacity: 0.15 },
 });
 
 export default Settings;
